@@ -19,5 +19,12 @@
   "bugs": {
     "url": "https://github.com/kombuster/graph-mod/issues"
   },
-  "homepage": "https://github.com/kombuster/graph-mod#readme"
+  "homepage": "https://github.com/kombuster/graph-mod#readme",
+  "dependencies": {
+    "mongodb": "^2.2.11"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.1.2"
+  }
 }
