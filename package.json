@@ -1,0 +1,23 @@
+{
+  "name": "graph-mod",
+  "version": "0.0.1",
+  "description": "graph API for MongoDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kombuster/graph-mod.git"
+  },
+  "keywords": [
+    "graph",
+    "mongo"
+  ],
+  "author": "Alex Soldatov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kombuster/graph-mod/issues"
+  },
+  "homepage": "https://github.com/kombuster/graph-mod#readme"
+}
