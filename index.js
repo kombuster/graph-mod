@@ -13,8 +13,11 @@ async function test () {
     //console.log(n1);
     await n1.connect(n2, { name:'state-transition' });
 
-
-
+    //load node
+    n1 = await collection.readNode({ name: 'node 1' });
+    //console.log(n1.edges);
+    n2 = await n1.edges[0].load();
+    console.log(n2);
     db.disconnect();
     console.log('db disconnected');
   } catch (exception) {
