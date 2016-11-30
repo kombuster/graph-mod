@@ -22,7 +22,7 @@ class Collection {
         if (err) {
           reject(err);
         } else {
-          resolve(results);
+          resolve(results || []);
         }
       });
     });

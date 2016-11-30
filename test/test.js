@@ -1,5 +1,4 @@
 const expect = require('chai').expect;
-//var numFormatter = require('../index');
 
 describe('#graph-mod', ()=>{
   it('should be there', ()=>{
