@@ -18,7 +18,7 @@ function buildSignature(collection, key) {
   return { collection, key };
 }
 
-class GraphNode {
+module.exports = class GraphNode {
   constructor(collection, key, data) {
     this.collection = collection;
     this.key = key;
@@ -27,7 +27,7 @@ class GraphNode {
     this.edges = [];
   }
 
-  
+
 
   sameAs(data) {
     return compare(data, this.data);
@@ -61,5 +61,3 @@ class GraphNode {
   }
 
 }
-
-module.exports = GraphNode;

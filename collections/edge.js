@@ -1,4 +1,4 @@
-class Edge {
+module.exports = class Edge {
   constructor(node, data) {
     this.node = node;
     this.data = data;
@@ -14,5 +14,3 @@ class Edge {
     return this.target;
   }
 }
-
-module.exports = Edge;

@@ -1,6 +1,6 @@
 const GraphNode = require('./graph-node');
 
-class Collection {
+module.exports = class Collection {
   constructor(db, name) {
     this.db = db;
     this.mongo = db.db;
@@ -15,7 +15,7 @@ class Collection {
       return node;
     }
   }
-  
+
   read(filter) {
     return new Promise((resolve, reject) => {
       this.mongo.collection(this.name).find(filter).toArray((err, results) => {
@@ -40,8 +40,8 @@ class Collection {
     } else {
       let combined = Object.assign({}, filter, data);
       await this.insert(combined);
-      return new GraphNode(this, filter, data); 
-    } 
+      return new GraphNode(this, filter, data);
+    }
   }
 
   update(filter, data) {
@@ -53,7 +53,19 @@ class Collection {
           resolve(crudResult);
         }
       });
-    });     
+    });
+  }
+
+  async clear() {
+    return new Promise((resolve, reject) => {
+      this.mongo.collection(this.name).remove({}, (err, result) =>{
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
+    });
   }
 
   insert(data) {
@@ -67,8 +79,5 @@ class Collection {
       });
     });
   }
-  
+
 }
-
-
-module.exports = Collection;

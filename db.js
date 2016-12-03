@@ -5,13 +5,15 @@ const Collection = require('./collections/collection');
 
 
 class Db {
-  
+
   constructor(configuration){
     this.configuration = configuration;
     this.collections = new Map();
   }
- 
+
   connect() {
+
+    
     let self = this;
     return new Promise((resolve, reject)=>{
       console.log('connecting mongo', this.configuration.mongo.serverUrl);
@@ -19,7 +21,7 @@ class Db {
         if (err) {
           return reject(err);
         }
-        
+
         this.db = db;
 
         // let indexer = (collection, field) => {
@@ -51,15 +53,15 @@ class Db {
         //   resolve(db);
         // }
       });
-    });   
+    });
   }
 
 
-  
 
-  
 
-  
+
+
+
   remove(object, collection) {
     collection = collection || object._collection
     return new Promise((resolve, reject)=>{
@@ -72,7 +74,7 @@ class Db {
       });
     });
   }
-  
+
   getCollection(name) {
     if (this.collections.has(name)) {
     } else {
@@ -80,7 +82,7 @@ class Db {
     }
     return this.collections.get(name);
   }
-  
+
   disconnect(){
     this.db.close();
   }
@@ -96,6 +98,6 @@ module.exports = (configuration) => {
       }
   };
 
-  let proxy = new Proxy(db, handler);  
+  let proxy = new Proxy(db, handler);
   return proxy.connect();
 };
