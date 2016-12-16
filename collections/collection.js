@@ -1,4 +1,5 @@
 const GraphNode = require('./graph-node');
+const ObjectId = require('mongodb').ObjectID;
 
 module.exports = class Collection {
   constructor(db, name) {
@@ -8,9 +9,13 @@ module.exports = class Collection {
   }
 
   async readNode(key) {
+    if (typeof key === 'string') {
+      key = { _id: new ObjectId(key)};
+    }
     let results = await this.read(key, this.name);
     if (results && results.length) {
-      let node = new GraphNode(this, key, results[0]);
+      //nsole.log(results[0]);
+      let node = new GraphNode(this, key, results[0]).withId(results[0]._id);
       await node.loadEdges();
       return node;
     }
@@ -39,8 +44,8 @@ module.exports = class Collection {
       return existing;
     } else {
       let combined = Object.assign({}, filter, data);
-      await this.insert(combined);
-      return new GraphNode(this, filter, data);
+      let result = await this.insert(combined);
+      return new GraphNode(this, filter, data).withId(result.insertedId);
     }
   }
 
@@ -74,6 +79,7 @@ module.exports = class Collection {
         if (err) {
           reject(err);
         } else {
+          //console.log(crudResult.insertedId);
           resolve(crudResult);
         }
       });
