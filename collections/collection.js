@@ -17,6 +17,7 @@ module.exports = class Collection {
       //nsole.log(results[0]);
       let node = new GraphNode(this, key, results[0]).withId(results[0]._id);
       await node.loadEdges();
+      node.state = this.db.states.UNCHANGED;
       return node;
     }
   }
@@ -37,15 +38,19 @@ module.exports = class Collection {
     let existing = await this.readNode(filter);
     if (existing) {
       //need to check if there is a data update needed
+      
       if (!existing.sameAs(data)) {
         Object.assign(existing.data, data);
         await this.update(existing.key, existing.data);
+        existing.state = this.db.states.UPDATED;
       }
       return existing;
     } else {
       let combined = Object.assign({}, filter, data);
       let result = await this.insert(combined);
-      return new GraphNode(this, filter, data).withId(result.insertedId);
+      let newNode = new GraphNode(this, filter, data).withId(result.insertedId);
+      newNode.state = this.db.states.NEW;
+      return newNode;
     }
   }
 

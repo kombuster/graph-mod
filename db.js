@@ -9,6 +9,11 @@ class Db {
   constructor(configuration){
     this.configuration = configuration;
     this.collections = new Map();
+    this.states = {
+      NEW:'NEW',
+      UNCHANGED:'UNCHANGED',
+      UPDATED:'UPDATED'
+    };
   }
 
   connect() {

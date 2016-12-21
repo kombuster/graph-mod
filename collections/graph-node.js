@@ -52,6 +52,13 @@ module.exports = class GraphNode {
     this.edges = edges.map(e => new Edge(this, e));
   }
 
+  async findConnectingNodes(edgeName) {
+    let edgeCollection = this.getEdgeCollection();
+    let edges = await edgeCollection.read({ end: this.signature, name: edgeName });
+    
+    return edges.map(e => new Edge(this, e));
+  }
+
 
 
 
