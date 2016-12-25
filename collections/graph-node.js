@@ -46,17 +46,37 @@ module.exports = class GraphNode {
     return this.collection.db.getCollection('edges');
   }
 
+  async findEdges(edgePredicate, nodePredicate, results, previous){
+    if (!results) {
+      results = [];
+    }
+    const filteredEdges = this.edges.filter(edgePredicate);
+    let filteredNodes = [];
+
+    for(let edge of filteredEdges) {
+      edge.previous = previous;
+      
+      await edge.load();
+      const status = nodePredicate(edge.target, edge);
+      if (status) {
+        results.push(edge);
+      } else {
+        await edge.target.findEdges(edgePredicate, nodePredicate, results, edge);
+      }
+    }
+    return results;
+  }
+
   async loadEdges() {
     let edgeCollection = this.getEdgeCollection();
     let edges = await edgeCollection.read({ start: this.signature });
     this.edges = edges.map(e => new Edge(this, e));
   }
 
-  async findConnectingNodes(edgeName) {
-    let edgeCollection = this.getEdgeCollection();
-    let edges = await edgeCollection.read({ end: this.signature, name: edgeName });
-    
-    return edges.map(e => new Edge(this, e));
+  findEdge(name, targetSignature){
+    console.log({name, targetSignature});
+    let edge = this.edges.find(e => e.end === targetSignature && e.name === name);
+    return edge;
   }
 
 

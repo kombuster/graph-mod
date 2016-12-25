@@ -5,13 +5,16 @@ module.exports = class Edge {
     this.start = data.start;
     this.end = data.end;
     this.name = data.name;
+    const tuple = this.end.split('__');
+    this.targetCollectionName = tuple[1];
+    this.targetId = tuple[0];
+
   }
 
   async load(){
     if (!this.target) {
-      const tuple = this.end.split('__');
-      let collection = this.node.collection.db.getCollection(tuple[1]);
-      this.target = await collection.readNode(tuple[0]);
+      let collection = this.node.collection.db.getCollection(this.targetCollectionName);
+      this.target = await collection.readNode(this.targetId);
     }
     return this.target;
   }
