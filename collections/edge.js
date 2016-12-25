@@ -1,3 +1,4 @@
+const assert = require('assert');
 module.exports = class Edge {
   constructor(node, data) {
     this.node = node;
@@ -5,6 +6,7 @@ module.exports = class Edge {
     this.start = data.start;
     this.end = data.end;
     this.name = data.name;
+    assert(this.end, 'bad edge');
     const tuple = this.end.split('__');
     this.targetCollectionName = tuple[1];
     this.targetId = tuple[0];

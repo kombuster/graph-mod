@@ -46,25 +46,31 @@ module.exports = class GraphNode {
     return this.collection.db.getCollection('edges');
   }
 
-  async findEdges(edgePredicate, nodePredicate, results, previous){
-    if (!results) {
-      results = [];
+  async findEdges(query, collector, previous){
+    if (!collector) {
+      collector = { 
+        results:[]
+      };
+      query.edgePredicate = query.edgePredicate || (e => true);
+      query.costFunction = query.costFunction || (e => 1);
     }
-    const filteredEdges = this.edges.filter(edgePredicate);
-    let filteredNodes = [];
-
+    //console.log(this.edges.length);
+    const filteredEdges = this.edges.filter(query.edgePredicate);
+    //console.log(filteredEdges.length);    
     for(let edge of filteredEdges) {
       edge.previous = previous;
       
       await edge.load();
-      const status = nodePredicate(edge.target, edge);
+      //console.log('checking ', edge.target.key.name);
+      const status = query.nodePredicate(edge.target, edge);
       if (status) {
-        results.push(edge);
+        //console.log('pushing edge');
+        collector.results.push(edge);
       } else {
-        await edge.target.findEdges(edgePredicate, nodePredicate, results, edge);
+        await edge.target.findEdges(query, collector, edge);
       }
     }
-    return results;
+    return collector.results;
   }
 
   async loadEdges() {
@@ -89,6 +95,7 @@ module.exports = class GraphNode {
       let edgeCollection = this.getEdgeCollection();
       let record = Object.assign({ start: this.signature, end: target.signature, name }, data);
       await edgeCollection.insert(record);
+      assert(record.end, record);
       edge = new Edge(this, record);
       edge.target = target;
       this.edges.push(edge);

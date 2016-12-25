@@ -6,18 +6,27 @@ module.exports = class Collection {
     this.db = db;
     this.mongo = db.db;
     this.name = name;
+    this.cache = { };
   }
 
   async readNode(key) {
     if (typeof key === 'string') {
+      if (this.cache[key]) {
+        return this.cache[key];
+      }
       key = { _id: new ObjectId(key)};
     }
     let results = await this.read(key, this.name);
     if (results && results.length) {
+      const id = results[0]._id;
+      if (this.cache[id]) {
+        return this.cache[id];
+      }
       //nsole.log(results[0]);
-      let node = new GraphNode(this, key, results[0]).withId(results[0]._id);
+      let node = new GraphNode(this, key, results[0]).withId(id);
       await node.loadEdges();
       node.state = this.db.states.UNCHANGED;
+      this.cache[id] = node;
       return node;
     }
   }
@@ -48,8 +57,10 @@ module.exports = class Collection {
     } else {
       let combined = Object.assign({}, filter, data);
       let result = await this.insert(combined);
-      let newNode = new GraphNode(this, filter, data).withId(result.insertedId);
+      let id = result.insertedId;
+      let newNode = new GraphNode(this, filter, data).withId(id);
       newNode.state = this.db.states.NEW;
+      this.cache[id] = newNode;
       return newNode;
     }
   }

@@ -24,9 +24,9 @@ async function test () {
     
     //load node
     n1 = await collection.readNode({ name: 'node 1' });
-    let path = await n1.findEdges(
-      e => e.targetCollectionName === 'testNodes', 
-      n=>n.data.name === 'node 3');
+    let path = await n1.findEdges({
+      nodePredicate:n=>n.key.name === 'node 3'
+    });
     console.log(path);
     // assert(n1.edges.length > 0);
     
