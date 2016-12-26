@@ -73,14 +73,15 @@ module.exports = class GraphNode {
     return collector.results;
   }
 
+
   async loadEdges() {
     let edgeCollection = this.getEdgeCollection();
     let edges = await edgeCollection.read({ start: this.signature });
     this.edges = edges.map(e => new Edge(this, e));
   }
 
-  findEdge(name, targetSignature){
-    console.log({name, targetSignature});
+  getEdge(name, targetSignature){
+    //console.log({name, targetSignature});
     let edge = this.edges.find(e => e.end === targetSignature && e.name === name);
     return edge;
   }
