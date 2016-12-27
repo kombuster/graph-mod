@@ -7,10 +7,17 @@ module.exports = class Edge {
     this.end = data.end;
     this.name = data.name;
     assert(this.end, 'bad edge');
-    const tuple = this.end.split('__');
-    this.targetCollectionName = tuple[1];
-    this.targetId = tuple[0];
+    const parsedSignature = Edge.parseSignature(this.end);
+    this.targetCollectionName = parsedSignature.collectionName;
+    this.targetId = parsedSignature.id;
 
+  }
+
+  static parseSignature(signature) {
+    const tuple = signature.split('__');
+    const collectionName = tuple[1];
+    const id = tuple[0];
+    return { collectionName, id };    
   }
 
   async load(){

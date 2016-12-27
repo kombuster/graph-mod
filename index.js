@@ -27,7 +27,13 @@ async function test () {
     let path = await n1.findEdges({
       nodePredicate:n=>n.key.name === 'node 3'
     });
-    console.log(path);
+    //to find concept related to an object
+    //backtrack
+    let tail = path[0].target;
+    console.log(tail.key.name);
+    let stepups = await tail.backtrack('state2');
+    console.log(stepups[0].key.name);
+    //console.log(path);
     // assert(n1.edges.length > 0);
     
     // //console.log(n1.edges);

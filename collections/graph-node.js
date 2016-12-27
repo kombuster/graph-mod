@@ -73,6 +73,18 @@ module.exports = class GraphNode {
     return collector.results;
   }
 
+  async backtrack(name) {
+    const edgeCollection = this.getEdgeCollection();
+    const edges = await edgeCollection.read({ end: this.signature, name});
+    let nodes = [];
+    for(let edge of edges) {
+      let signature = Edge.parseSignature(edge.start);
+      let collection = this.collection.db.getCollection(signature.collectionName);
+      let node = await collection.readNode(signature.id);
+      nodes.push(node);
+    }
+    return nodes;
+  }
 
   async loadEdges() {
     let edgeCollection = this.getEdgeCollection();
