@@ -73,6 +73,11 @@ module.exports = class GraphNode {
     return collector.results;
   }
 
+  async backtrackOne(name) {
+    let nodes = await this.backtrack(name);
+    return nodes[0];
+  }
+
   async backtrack(name) {
     const edgeCollection = this.getEdgeCollection();
     const edges = await edgeCollection.read({ end: this.signature, name});
