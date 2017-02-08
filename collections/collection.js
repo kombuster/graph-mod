@@ -10,20 +10,26 @@ module.exports = class Collection {
   }
 
   async readNode(key) {
+    let node = null;
     if (typeof key === 'string') {
       if (this.cache[key]) {
-        return this.cache[key];
+        node = this.cache[key];
+        node.state = this.db.states.UNCHANGED;
+        return node;
       }
       key = { _id: new ObjectId(key)};
     }
     let results = await this.read(key, this.name);
     if (results && results.length) {
       const id = results[0]._id;
+      //console.log('found:', results[0]);
       if (this.cache[id]) {
-        return this.cache[id];
+        node = this.cache[id];
+        node.state = this.db.states.UNCHANGED;
+        return node;
       }
-      //nsole.log(results[0]);
-      let node = new GraphNode(this, key, results[0]).withId(id);
+      
+      node = new GraphNode(this, key, results[0]).withId(id);
       await node.loadEdges();
       node.state = this.db.states.UNCHANGED;
       this.cache[id] = node;
