@@ -6,33 +6,46 @@ module.exports = class Collection {
     this.db = db;
     this.mongo = db.db;
     this.name = name;
-    this.cache = { };
+    this.idCache = { };
+    this.keyCache = { };
   }
 
   async readNode(key) {
     let node = null;
+    let json = null;
     if (typeof key === 'string') {
-      if (this.cache[key]) {
-        node = this.cache[key];
-        node.state = this.db.states.UNCHANGED;
-        return node;
+      if (this.idCache[key]) {
+        node = this.idCache[key];
       }
       key = { _id: new ObjectId(key)};
+    } else {
+      json = JSON.stringify(key);
+      if (this.keyCache[json]) {
+        node = this.keyCache[json];
+      }
+    }
+
+    if (node) {
+      node.state = this.db.states.UNCHANGED;
+      return node;
     }
     let results = await this.read(key, this.name);
+    //console.log('loading', key);
+    //console.log(Object.keys(this.keyCache));
     if (results && results.length) {
       const id = results[0]._id;
       //console.log('found:', results[0]);
-      if (this.cache[id]) {
-        node = this.cache[id];
-        node.state = this.db.states.UNCHANGED;
-        return node;
-      }
+      // if (this.idCache[id]) {
+      //   node = this.idCache[id];
+      //   node.state = this.db.states.UNCHANGED;
+      //   return node;
+      // }
       
       node = new GraphNode(this, key, results[0]).withId(id);
       await node.loadEdges();
       node.state = this.db.states.UNCHANGED;
-      this.cache[id] = node;
+      this.idCache[id] = node;
+      this.keyCache[json] = node;
       return node;
     }
   }
@@ -66,7 +79,8 @@ module.exports = class Collection {
       let id = result.insertedId;
       let newNode = new GraphNode(this, filter, data).withId(id);
       newNode.state = this.db.states.NEW;
-      this.cache[id] = newNode;
+      this.idCache[id] = newNode;
+      this.keyCache[JSON.stringify(filter)] = newNode;
       return newNode;
     }
   }

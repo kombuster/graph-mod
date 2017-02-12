@@ -24,6 +24,7 @@ module.exports = class Edge {
     if (!this.target) {
       let collection = this.node.collection.db.getCollection(this.targetCollectionName);
       this.target = await collection.readNode(this.targetId);
+      //this.node.links[this.name] = this.target;
     }
     return this.target;
   }

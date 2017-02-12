@@ -24,6 +24,7 @@ module.exports = class GraphNode {
     //this.signature = buildSignature(this.collection.name, this.key);
     this.data = data || {};
     this.edges = [];
+    //this.links = {};
   }
 
 
@@ -94,16 +95,27 @@ module.exports = class GraphNode {
   async loadEdges() {
     let edgeCollection = this.getEdgeCollection();
     let edges = await edgeCollection.read({ start: this.signature });
+    //this.links = {};
+    //edges.forEach(e => this._addEdge(e));
     this.edges = edges.map(e => new Edge(this, e));
   }
 
   getEdge(name, targetSignature){
     //console.log({name, targetSignature});
-    let edge = this.edges.find(e => e.end === targetSignature && e.name === name);
+    let edge =  targetSignature ? 
+      this.edges.find(e => e.end === targetSignature && e.name === name) : 
+      this.edges.find(e => e.name === name);
+    if (!edge) {
+      console.log(this.edges);
+    }
     return edge;
   }
 
 
+  // _addEdge(edgeData){
+  //   const edge = new Edge(this, edgeData);
+  //   this.edges.push(edge);
+  // }
 
 
   async connect(target, name, data) {
@@ -117,6 +129,9 @@ module.exports = class GraphNode {
       edge = new Edge(this, record);
       edge.target = target;
       this.edges.push(edge);
+      //let check = this.getEdge(name);
+      //assert(check, 'proper connection');
+      //this.links[name] = target;
     }
     return edge;
   }
