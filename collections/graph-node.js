@@ -1,5 +1,6 @@
 const Edge = require('./edge');
 const assert = require('assert');
+const EdgeBank = require('./edge-bank');
 
 function compare(a, b) {
   for(let key in a) {
@@ -21,10 +22,9 @@ module.exports = class GraphNode {
   constructor(collection, key, data) {
     this.collection = collection;
     this.key = key;
-    //this.signature = buildSignature(this.collection.name, this.key);
     this.data = data || {};
+    this.out = {};
     this.edges = [];
-    //this.links = {};
   }
 
 
@@ -43,9 +43,7 @@ module.exports = class GraphNode {
     return compare(data, this.data);
   }
 
-  getEdgeCollection() {
-    return this.collection.db.getCollection('edges');
-  }
+
 
   async findEdges(query, collector, previous){
     if (!collector) {
@@ -79,6 +77,10 @@ module.exports = class GraphNode {
     return nodes[0];
   }
 
+  getEdgeCollection() {
+    return this.collection.db.getCollection('edges');
+  }
+
   async backtrack(name) {
     const edgeCollection = this.getEdgeCollection();
     const edges = await edgeCollection.read({ end: this.signature, name});
@@ -100,6 +102,8 @@ module.exports = class GraphNode {
     this.edges = edges.map(e => new Edge(this, e));
   }
 
+
+
   getEdge(name, targetSignature){
     //console.log({name, targetSignature});
     let edge =  targetSignature ? 
@@ -112,13 +116,14 @@ module.exports = class GraphNode {
   }
 
 
-  // _addEdge(edgeData){
-  //   const edge = new Edge(this, edgeData);
-  //   this.edges.push(edge);
-  // }
+  // // _addEdge(edgeData){
+  // //   const edge = new Edge(this, edgeData);
+  // //   this.edges.push(edge);
+  // // }
 
 
   async connect(target, name, data) {
+    assert(this != target, 'can not connect to itself');
     let edge = this.edges.find(e => e.end === target.signature && e.name === name && compare(data, e.data));
     if (!edge) {
       //console.log('edge not found');

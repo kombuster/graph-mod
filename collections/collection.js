@@ -1,5 +1,6 @@
 const GraphNode = require('./graph-node');
 const ObjectId = require('mongodb').ObjectID;
+const Query = require('./query');
 
 module.exports = class Collection {
   constructor(db, name) {
@@ -8,6 +9,11 @@ module.exports = class Collection {
     this.name = name;
     this.idCache = { };
     this.keyCache = { };
+  }
+
+  async query(...args) {
+    let results = await (new Query(this)).run(...args);
+    return results;
   }
 
   async readNode(key) {
@@ -40,8 +46,11 @@ module.exports = class Collection {
       //   node.state = this.db.states.UNCHANGED;
       //   return node;
       // }
-      
-      node = new GraphNode(this, key, results[0]).withId(id);
+      let nodeKey = Object.assign({}, results[0]);
+      delete nodeKey._id;
+      delete nodeKey._data;
+
+      node = new GraphNode(this, nodeKey, results[0]._data).withId(id);
       await node.loadEdges();
       node.state = this.db.states.UNCHANGED;
       this.idCache[id] = node;
@@ -74,7 +83,8 @@ module.exports = class Collection {
       }
       return existing;
     } else {
-      let combined = Object.assign({}, filter, data);
+      let combined = Object.assign({}, filter);
+      combined._data = data;
       let result = await this.insert(combined);
       let id = result.insertedId;
       let newNode = new GraphNode(this, filter, data).withId(id);
