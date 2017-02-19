@@ -7,14 +7,16 @@ async function test () {
   try{
     
     db = await graphDb(require('./test-configuration.json'));
-    let all = await db.domains.query(n=>true, async n=>{
+    let all = await db.domains.query()
+    .projection(async n=>{
       const concepts = await n.backtrack('domain');
       return {
         n:n.key.domain,
         p:n.edges.map(e => e.target.key.domain).join(','),
         e:concepts[0].data.word
       };
-    });
+    }).run();
+    
     console.log(all);
   } catch (exception) {
     console.error(exception);

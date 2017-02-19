@@ -1,9 +1,25 @@
 module.exports = class Query {
   constructor(collection) {
     this.collection = collection;
+    this._predicate = (n)=>true;
+    this._projection = (n)=>n;
   }
 
-  async run(predicate, projection, backtrack) {
+  where(func) {
+    return this.predicate(func);
+  }
+
+  predicate(func) {
+    this._predicate = func;
+    return this;
+  }
+
+  projection(func) {
+    this._projection = func;
+    return this;
+  }
+
+  async run() {
     //this is where it will be initially filtered
     let records = await this.collection.read({});
     let results = [];
@@ -12,26 +28,14 @@ module.exports = class Query {
       for(let edge of node.edges) {
         await edge.load();
       }
-      if (backtrack) {
-        
+      if (!(await this._predicate(node))){
+        continue;
       }
-      if (predicate) {
-        if (!predicate(node)){
-          continue;
-        }
-      }
-      if (projection) {
-        let result = {};
-        if (Array.isArray(projection)) {
-          projection.forEach(f => result[f] = node.key[f] || node.data[f]);
-        } else {
-          result = await projection(node);
-        }
-        results.push(result);
-      }
+
+      let result = await this._projection(node);
+      results.push(result);
     }
     
-    return {results};
-    //return records;
+    return results;
   }
 }

@@ -9,11 +9,15 @@ module.exports = class Collection {
     this.name = name;
     this.idCache = { };
     this.keyCache = { };
+    this.graphNodeClass = null;
   }
 
-  async query(...args) {
-    let results = await (new Query(this)).run(...args);
-    return results;
+
+  where(func) {
+    return this.query().where(func);
+  }
+  query() {
+    return new Query(this);
   }
 
   async readNode(key) {
@@ -49,14 +53,19 @@ module.exports = class Collection {
       let nodeKey = Object.assign({}, results[0]);
       delete nodeKey._id;
       delete nodeKey._data;
-
-      node = new GraphNode(this, nodeKey, results[0]._data).withId(id);
+      
+      node = new this._graphNodeClass(this, nodeKey, results[0]._data).withId(id);
       await node.loadEdges();
       node.state = this.db.states.UNCHANGED;
       this.idCache[id] = node;
       this.keyCache[json] = node;
       return node;
     }
+  }
+
+  get _graphNodeClass() {
+    const graphNodeClass = this.graphNodeClass || this.db.graphNodeClass;
+    return graphNodeClass;
   }
 
   read(filter) {
@@ -71,12 +80,12 @@ module.exports = class Collection {
     });
   }
 
-  async merge(filter, data) {
+  async merge(filter, data, ignoreData) {
     let existing = await this.readNode(filter);
     if (existing) {
       //need to check if there is a data update needed
       
-      if (!existing.sameAs(data)) {
+      if (!ignoreData && !existing.sameAs(data)) {
         Object.assign(existing.data, data);
         await this.update(existing.key, existing.data);
         existing.state = this.db.states.UPDATED;
@@ -87,7 +96,7 @@ module.exports = class Collection {
       combined._data = data;
       let result = await this.insert(combined);
       let id = result.insertedId;
-      let newNode = new GraphNode(this, filter, data).withId(id);
+      let newNode = new this._graphNodeClass(this, filter, data).withId(id);
       newNode.state = this.db.states.NEW;
       this.idCache[id] = newNode;
       this.keyCache[JSON.stringify(filter)] = newNode;

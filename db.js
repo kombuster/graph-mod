@@ -2,7 +2,7 @@
 const mongo = require('mongodb').MongoClient;
 const assert = require('assert');
 const Collection = require('./collections/collection');
-
+const GraphNode = require('./collections/graph-node');
 
 class Db {
 
@@ -14,9 +14,12 @@ class Db {
       UNCHANGED:'UNCHANGED',
       UPDATED:'UPDATED'
     };
+    this.graphNodeClass = GraphNode;
   }
 
-  connect() {
+
+
+  connect(setup) {
 
     
     let self = this;
@@ -41,6 +44,9 @@ class Db {
         //     });
         //   });
         // };
+        if (setup) {
+          setup(self);
+        }
         resolve(self);
         // //console.log(this.configuration.mongo);
         // if (this.configuration.mongo.indexes) {
@@ -93,7 +99,7 @@ class Db {
   }
 }
 
-module.exports = (configuration) => {
+module.exports = (configuration, setup) => {
   let db = new Db(configuration);
   let handler = {
       get: (target, name) => {
@@ -104,5 +110,5 @@ module.exports = (configuration) => {
   };
 
   let proxy = new Proxy(db, handler);
-  return proxy.connect();
+  return proxy.connect(setup);
 };

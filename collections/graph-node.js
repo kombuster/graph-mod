@@ -3,6 +3,7 @@ const assert = require('assert');
 const EdgeBank = require('./edge-bank');
 
 function compare(a, b) {
+  //return JSON.stringify(a) === JSON.stringify(b);
   for(let key in a) {
     if ( typeof a[key] === 'object') {
       //console.log('nested compare', a[key], b[key]);
