@@ -63,12 +63,60 @@ module.exports = class Collection {
     }
   }
 
+  uncache(node) {
+    delete this.idCache[node.id];
+    let json = JSON.stringify(node.key);
+    delete this.keyCache[json];
+  }
+
   get _graphNodeClass() {
     const graphNodeClass = this.graphNodeClass || this.db.graphNodeClass;
     return graphNodeClass;
   }
 
-  read(filter) {
+  async read(filter) {
+    if (!this.indexes) {
+      let indexes = await this.mongo.collection(this.name).indexes();
+      this.indexes = {};
+      for(let index of indexes) {
+        let key = index.key;
+        let fields = Object.keys(key);
+        fields.sort();
+        this.indexes[fields.join(',')] = true;
+      }
+      //console.log(this.indexes);
+    }
+    let filterKeys = Object.keys(filter);
+    filterKeys.sort();
+    let filterSpec = filterKeys.join(',');
+    if (!this.indexes[filterSpec]) {
+      let indexSpec = Object.assign({}, filter);
+      for(let key in indexSpec) {
+        indexSpec[key] = 1;
+      }
+      console.log('creating index', indexSpec);
+      await this.mongo.collection(this.name).createIndex(indexSpec);
+      this.indexes[filterSpec] = true;
+    }
+
+
+    let result = await this._read(filter);
+    return result;
+  }
+
+  // _getIndexes() {
+  //   return new Promise((resolve, reject) => {
+  //     this.mongo.collection(this.name).getIndexes((err, result) => {
+  //       if (err) {
+  //         reject(err);
+  //       } else {
+  //         resolve(result);
+  //       }
+  //     });
+  //   });
+  // }
+
+  _read(filter) {
     return new Promise((resolve, reject) => {
       this.mongo.collection(this.name).find(filter).toArray((err, results) => {
         if (err) {
@@ -114,6 +162,10 @@ module.exports = class Collection {
         }
       });
     });
+  }
+
+  async remove(filter) {
+    await this.mongo.collection(this.name).remove(filter);
   }
 
   async clear() {

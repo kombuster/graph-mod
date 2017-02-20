@@ -116,11 +116,25 @@ module.exports = class GraphNode {
     return edge;
   }
 
+  async loadEdgesNamed(name){
+    let nodes = [];
+    for(let edge of this.edges.filter(e => e.name === name)) {
+      //console.log('loading', name);
+      let node = await edge.load();
+      nodes.push(node);
+    }
+    return nodes;
+  }
 
-  // // _addEdge(edgeData){
-  // //   const edge = new Edge(this, edgeData);
-  // //   this.edges.push(edge);
-  // // }
+
+  async remove() {
+    let signature = this.signature;
+    let edgeCollection = this.getEdgeCollection();
+    await edgeCollection.remove({start:signature});
+    await edgeCollection.remove({end:signature});
+    await this.collection.remove(this.key);
+    this.collection.uncache(this);
+  }
 
 
   async connect(target, name, data) {
